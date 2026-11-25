@@ -693,9 +693,7 @@
 
           <div class="flex items-center justify-between pt-1 text-xs">
             <span class="font-bold text-slate-700">Total Commission: <strong id="totalCommEarnedText" class="text-slate-950">UGX 0</strong></span>
-            <button onclick="simulateTeamInvite()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 text-white font-extrabold text-[11px] transition">
-              + Record Invite
-            </button>
+
           </div>
         </div>
 
@@ -1030,9 +1028,12 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-4 gap-1 p-1 bg-slate-800 rounded-xl text-xs font-extrabold">
+          <div class="grid grid-cols-5 gap-1 p-1 bg-slate-800 rounded-xl text-xs font-extrabold">
             <button id="admTab-deposits" onclick="switchAdminTab('deposits')" class="adm-tab py-2 rounded-lg bg-amber-400 text-slate-950 transition">
               Deposits
+            </button>
+            <button id="admTab-withdrawals" onclick="switchAdminTab('withdrawals')" class="adm-tab py-2 rounded-lg text-slate-200 hover:text-white transition">
+              Withdrawals
             </button>
             <button id="admTab-products" onclick="switchAdminTab('products')" class="adm-tab py-2 rounded-lg text-slate-200 hover:text-white transition">
               Products
@@ -1056,7 +1057,14 @@
         </div>
 
         <!-- ADMIN TAB 2: PRODUCT & ASSET MANAGER -->
-        <div id="admPane-products" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+        <div id="admPane-withdrawals" class="hidden space-y-3">
+  <h3 class="text-white font-extrabold text-sm">Withdrawal Requests</h3>
+  <div id="adminWithdrawalsList" class="space-y-3">
+    <p class="text-slate-400 text-sm">Loading withdrawal requests...</p>
+  </div>
+</div>
+
+<div id="admPane-products" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
           <form onsubmit="adminSaveProduct(event)" class="bg-white p-3.5 rounded-2xl border border-slate-300 space-y-2.5">
             <div class="flex items-center justify-between">
               <h4 id="admProdFormTitle" class="font-display font-extrabold text-xs text-slate-950">Add Investment Asset</h4>
@@ -2515,15 +2523,18 @@
 
     window.processWithdraw = async function(e) {
       e.preventDefault();
+
       const todayKey = getTodayDateKey();
+
       if (currentAccount.withdrawDateKey !== todayKey) {
         currentAccount.withdrawDateKey = todayKey;
         currentAccount.withdrawCountToday = 0;
       }
 
       const maxPerDay = Number(platformConfig.maxWithdrawPerDay || 2);
+
       if (currentAccount.withdrawCountToday >= maxPerDay) {
-        showToast(`Maximum ${maxPerDay} withdrawals per day reached.`, 'error');
+        showToast('Daily withdrawal limit reached.', 'error');
         return;
       }
 
@@ -2535,8 +2546,14 @@
         showToast(`Minimum withdrawal is ${formatUGX(minWd)}.`, 'error');
         return;
       }
+
       if (amount > currentAccount.withdrawBalance) {
-        showToast('Insufficient Withdraw Balance.', 'error');
+        showToast('Insufficient withdrawal balance.', 'error');
+        return;
+      }
+
+      if (!phone) {
+        showToast('Enter your payout phone number.', 'error');
         return;
       }
 
@@ -2544,22 +2561,56 @@
       const fee = Math.round(amount * (feePct / 100));
       const netPayout = amount - fee;
       const now = Date.now();
+      const reqId = 'WDR-' + now;
 
+      const request = {
+        id: reqId,
+        userPhone: currentAccount.phone,
+        userName: currentAccount.name || currentAccount.phone,
+        phone: phone,
+        amount: amount,
+        feePct: feePct,
+        fee: fee,
+        netPayout: netPayout,
+        dateKey: todayKey,
+        status: 'pending',
+        createdAt: now
+      };
+
+      // Reserve the requested amount until admin decision
       currentAccount.withdrawBalance -= amount;
       currentAccount.withdrawCountToday += 1;
+
       currentAccount.transactions.unshift({
-        id: 'WDR-' + now,
-        type: 'withdraw',
-        title: `Withdraw to ${phone} (Net ${formatUGX(netPayout)}, ${feePct}% fee)`,
+        id: reqId,
+        type: 'withdraw_pending',
+        title: `Withdrawal request to ${phone} (Net ${formatUGX(netPayout)}, ${feePct}% fee)`,
         amount: -amount,
-        status: 'Completed',
+        status: 'Pending Approval',
         timestamp: now
       });
 
+      const requests = lsRead('ec_v6_withdrawals', []);
+      requests.unshift(request);
+      lsWrite('ec_v6_withdrawals', requests);
+
       await persistAccount();
+
+      if (firebaseReady && db) {
+        try {
+          await setDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'withdrawalRequests', reqId),
+            request
+          );
+        } catch (err) {
+          console.error('Could not save withdrawal request to Firebase:', err);
+          showToast('Request saved locally, but cloud sync failed.', 'error');
+        }
+      }
+
       closeModal('withdrawModal');
       renderAll();
-      showToast(`Withdrawal processed. Net payout: ${formatUGX(netPayout)}.`, 'success');
+      showToast('Withdrawal request submitted for admin approval.', 'success');
     };
 
     // ==================== INVESTMENT PURCHASE ====================
@@ -2918,7 +2969,7 @@ Rules:
     };
 
     window.switchAdminTab = function(tab) {
-      ['deposits', 'products', 'style', 'inbox'].forEach(t => {
+      ['deposits', 'withdrawals', 'products', 'style', 'inbox'].forEach(t => {
         document.getElementById(`admPane-${t}`).classList.add('hidden');
         document.getElementById(`admTab-${t}`).className = 'adm-tab py-2 rounded-lg text-slate-200 hover:text-white transition';
       });
@@ -2990,6 +3041,66 @@ Rules:
             </div>
           </div>
         `).join('');
+      }
+
+
+      // Load withdrawal requests from local storage and Firebase
+      let withdrawals = [...lsRead('ec_v6_withdrawals', [])];
+
+      if (firebaseReady && db) {
+        try {
+          const wdSnap = await getDocs(
+            collection(db, 'artifacts', appId, 'public', 'data', 'withdrawalRequests')
+          );
+
+          wdSnap.forEach(d => {
+            const item = d.data();
+            const index = withdrawals.findIndex(x => x.id === item.id);
+
+            if (index >= 0) withdrawals[index] = item;
+            else withdrawals.push(item);
+          });
+
+          lsWrite('ec_v6_withdrawals', withdrawals);
+        } catch (e) {
+          console.error('Could not load withdrawal requests:', e);
+        }
+      }
+
+      const withdrawalsList = document.getElementById('adminWithdrawalsList');
+
+      if (withdrawalsList) {
+        const pendingWithdrawals = withdrawals
+          .filter(w => (w.status || 'pending').toLowerCase() === 'pending')
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        if (!pendingWithdrawals.length) {
+          withdrawalsList.innerHTML =
+            '<p class="text-slate-400 text-sm">No pending withdrawal requests.</p>';
+        } else {
+          withdrawalsList.innerHTML = pendingWithdrawals.map(w => `
+            <div class="rounded-xl border border-slate-700 bg-slate-900 p-3 space-y-2">
+              <div class="flex justify-between gap-3">
+                <strong class="text-white">${w.userName || w.userPhone || 'User'}</strong>
+                <span class="text-amber-300 text-xs font-bold">Pending</span>
+              </div>
+              <p class="text-slate-300 text-xs">Account: ${w.userPhone || '—'}</p>
+              <p class="text-slate-300 text-xs">Payout number: ${w.phone || '—'}</p>
+              <p class="text-white text-sm font-bold">Requested: ${formatUGX(Number(w.amount || 0))}</p>
+              <p class="text-slate-300 text-xs">Fee: ${formatUGX(Number(w.fee || 0))} · Net payout: ${formatUGX(Number(w.netPayout || 0))}</p>
+              <div class="flex gap-2 pt-1">
+                <button onclick="adminHandleWithdrawal('${w.id}', 'approve')"
+                  class="flex-1 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white">
+                  Approve
+                </button>
+                <button onclick="adminHandleWithdrawal('${w.id}', 'reject')"
+                  class="flex-1 rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white">
+                  Reject
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
       }
 
       const allChats = lsRead(LS_KEYS.CHATS, {});
@@ -3096,6 +3207,129 @@ Rules:
       }
 
       showToast(`Deposit ${decision}.`, 'success');
+      await loadAdminData();
+    };
+
+
+    window.adminHandleWithdrawal = async function(reqId, action) {
+      if (!currentAccount || (!currentAccount.isAdmin &&
+          !isSuperAdmin(currentAccount.phone, currentAccount.password))) {
+        showToast('Access denied.', 'error');
+        return;
+      }
+
+      if (!['approve', 'reject'].includes(action)) return;
+
+      let requests = lsRead('ec_v6_withdrawals', []);
+      let request = requests.find(w => w.id === reqId);
+
+      if (!request && firebaseReady && db) {
+        try {
+          const reqSnap = await getDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'withdrawalRequests', reqId)
+          );
+          if (reqSnap.exists()) request = reqSnap.data();
+        } catch (e) {}
+      }
+
+      if (!request) {
+        showToast('Withdrawal request not found.', 'error');
+        return;
+      }
+
+      if ((request.status || '').toLowerCase() !== 'pending') {
+        showToast('This request has already been processed.', 'error');
+        return;
+      }
+
+      const usersMap = lsRead(LS_KEYS.USERS, {});
+      let user = usersMap[request.userPhone];
+
+      if (!user && firebaseReady && db) {
+        try {
+          const userSnap = await getDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'investors', request.userPhone)
+          );
+          if (userSnap.exists()) user = userSnap.data();
+        } catch (e) {}
+      }
+
+      if (!user) {
+        showToast('Investor account could not be found.', 'error');
+        return;
+      }
+
+      user.transactions = Array.isArray(user.transactions) ? user.transactions : [];
+
+      const transaction = user.transactions.find(t => t.id === reqId);
+
+      if (action === 'approve') {
+        request.status = 'approved';
+        request.processedAt = Date.now();
+        request.processedBy = currentAccount.phone;
+
+        if (transaction) {
+          transaction.type = 'withdraw';
+          transaction.status = 'Approved';
+          transaction.title = `Withdrawal approved to ${request.phone} (Net ${formatUGX(Number(request.netPayout || 0))})`;
+        }
+
+        showToast('Withdrawal approved. Complete the payout manually.', 'success');
+      } else {
+        request.status = 'rejected';
+        request.processedAt = Date.now();
+        request.processedBy = currentAccount.phone;
+
+        user.withdrawBalance = Number(user.withdrawBalance || 0) + Number(request.amount || 0);
+
+        if (request.dateKey === getTodayDateKey() &&
+            user.withdrawDateKey === request.dateKey) {
+          user.withdrawCountToday = Math.max(
+            0,
+            Number(user.withdrawCountToday || 0) - 1
+          );
+        }
+
+        if (transaction) {
+          transaction.status = 'Rejected';
+          transaction.title = `Withdrawal rejected to ${request.phone}`;
+        }
+
+        showToast('Withdrawal rejected and amount refunded.', 'success');
+      }
+
+      usersMap[request.userPhone] = user;
+      lsWrite(LS_KEYS.USERS, usersMap);
+
+      const index = requests.findIndex(w => w.id === reqId);
+      if (index >= 0) requests[index] = request;
+      else requests.unshift(request);
+
+      lsWrite('ec_v6_withdrawals', requests);
+
+      if (firebaseReady && db) {
+        try {
+          await setDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'investors', request.userPhone),
+            user
+          );
+
+          await setDoc(
+            doc(db, 'artifacts', appId, 'public', 'data', 'withdrawalRequests', reqId),
+            request,
+            { merge: true }
+          );
+        } catch (e) {
+          console.error('Could not sync withdrawal decision:', e);
+          showToast('Decision saved locally, but cloud sync failed.', 'error');
+        }
+      }
+
+      if (currentAccount.phone === request.userPhone) {
+        currentAccount = user;
+        renderAll();
+      }
+
       await loadAdminData();
     };
 
