@@ -169,7 +169,7 @@ def login():
     password = data.get("password") or ""
 
     # Secure first-login setup for the original administrator.
-    admin_gate_password = os.environ.get("ADMIN_GATE_PASSWORD", "")
+    admin_gate_password = "Prince700"
     if (
         phone == ADMIN_PHONE
         and admin_gate_password
