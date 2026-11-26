@@ -8,6 +8,7 @@ ROOT = os.path.abspath(os.environ.get("PLATFORM_DIR", "."))
 DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(ROOT, "eastradge_accounts.sqlite3"))
 LAUNCH_UTC = datetime(2026, 11, 30, 4, 0, 0, tzinfo=timezone.utc)
 SYSTEM_CODE = "FGJGL"
+ADMIN_PHONE = os.environ.get("ADMIN_PHONE", "0758878297")
 app = Flask(__name__, static_folder=None)
 app.secret_key = os.environ.get("SECRET_KEY", "CHANGE-THIS-SECRET-KEY-BEFORE-DEPLOYMENT")
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "0") == "1")
@@ -81,7 +82,7 @@ def account_payload(con, row):
         "uid": "INV-" + str(row["id"]),
         "name": row["full_name"],
         "phone": row["phone"],
-        "isAdmin": False,
+        "isAdmin": row["phone"] == ADMIN_PHONE,
         "referralCode": row["invite_code"],
         "referredBy": inviter["invite_code"] if inviter else "DIRECT",
         "avatarUrl": "",
