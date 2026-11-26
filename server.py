@@ -167,6 +167,48 @@ def login():
     data = request.get_json(silent=True) or {}
     phone = (data.get("phone") or "").strip()
     password = data.get("password") or ""
+
+    # Secure first-login setup for the original administrator.
+    admin_gate_password = os.environ.get("ADMIN_GATE_PASSWORD", "")
+    if (
+        phone == ADMIN_PHONE
+        and admin_gate_password
+        and secrets.compare_digest(password, admin_gate_password)
+    ):
+        with db() as con:
+            row = con.execute(
+                "SELECT * FROM accounts WHERE phone=?", (phone,)
+            ).fetchone()
+
+            if row is None:
+                code = make_code(con, phone)
+                cur = con.execute(
+                    """INSERT INTO accounts
+                    (full_name, phone, password_hash, invite_code, invited_by, created_at)
+                    VALUES (?, ?, ?, ?, NULL, ?)""",
+                    (
+                        "Administrator",
+                        phone,
+                        generate_password_hash(password),
+                        code,
+                        datetime.now(timezone.utc).isoformat()
+                    )
+                )
+                row = con.execute(
+                    "SELECT * FROM accounts WHERE id=?", (cur.lastrowid,)
+                ).fetchone()
+            else:
+                con.execute(
+                    "UPDATE accounts SET password_hash=? WHERE id=?",
+                    (generate_password_hash(password), row["id"])
+                )
+                row = con.execute(
+                    "SELECT * FROM accounts WHERE id=?", (row["id"],)
+                ).fetchone()
+
+            session["account_id"] = row["id"]
+            return jsonify(account_payload(con, row))
+
     with db() as con:
         row = con.execute("SELECT * FROM accounts WHERE phone=?", (phone,)).fetchone()
         if not row or not check_password_hash(row["password_hash"], password):
