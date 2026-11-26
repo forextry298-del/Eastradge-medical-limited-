@@ -2374,12 +2374,84 @@
     }
 
     // ==================== COMMISSIONS (LV1 15%, LV2 5%, LV3 1%) & INVITE MILESTONES ====================
+    let eligibleInviteCountCache = 0;
+    let eligibleInviteRefreshPromise = null;
+
     function getTotalInvitesCount() {
-      const t = currentAccount.teamStats || {};
-      return Number(t.lv1Count || 0) + Number(t.lv2Count || 0) + Number(t.lv3Count || 0);
+      return eligibleInviteCountCache;
+    }
+
+    async function refreshEligibleInviteCount(force = false) {
+      if (!currentAccount || !currentAccount.referralCode) return 0;
+
+      if (eligibleInviteRefreshPromise) {
+        return await eligibleInviteRefreshPromise;
+      }
+
+      const accountPhone = String(currentAccount.phone || '');
+      const referralCode = String(currentAccount.referralCode || '');
+
+      eligibleInviteRefreshPromise = (async () => {
+        let users = Object.values(lsRead(LS_KEYS.USERS, {}));
+        let deposits = lsRead(LS_KEYS.DEPOSITS, []);
+
+        if (firebaseReady && db) {
+          try {
+            const usersSnap = await getDocs(
+              collection(db, 'artifacts', appId, 'public', 'data', 'investors')
+            );
+            const depositsSnap = await getDocs(
+              collection(db, 'artifacts', appId, 'public', 'data', 'depositRequests')
+            );
+
+            users = usersSnap.docs.map(d => d.data());
+            deposits = depositsSnap.docs.map(d => d.data());
+          } catch (err) {
+            console.error('Milestone eligibility refresh failed:', err);
+            eligibleInviteCountCache = 0;
+            return 0;
+          }
+        }
+
+        const approvedPhones = new Set(
+          deposits
+            .filter(d => String(d.status || '').toLowerCase() === 'approved')
+            .map(d => String(d.userPhone || ''))
+            .filter(Boolean)
+        );
+
+        const eligiblePhones = new Set(
+          users
+            .filter(u =>
+              u &&
+              String(u.phone || '') !== accountPhone &&
+              String(u.referredBy || '') === referralCode &&
+              approvedPhones.has(String(u.phone || ''))
+            )
+            .map(u => String(u.phone))
+        );
+
+        const count = eligiblePhones.size;
+        const changed = count !== eligibleInviteCountCache;
+        eligibleInviteCountCache = count;
+
+        if (changed && currentAccount &&
+            String(currentAccount.phone || '') === accountPhone) {
+          renderAll();
+        }
+
+        return count;
+      })();
+
+      try {
+        return await eligibleInviteRefreshPromise;
+      } finally {
+        eligibleInviteRefreshPromise = null;
+      }
     }
 
     function renderCommissionsAndRewards() {
+      refreshEligibleInviteCount();
       const t = currentAccount.teamStats;
       document.getElementById('lv1EarnedText').textContent = formatUGX(t.lv1Earned);
       document.getElementById('lv2EarnedText').textContent = formatUGX(t.lv2Earned);
@@ -2472,6 +2544,7 @@
     }
 
     window.claimMilestoneReward = async function(milestoneInvites, rewardAmount) {
+      await refreshEligibleInviteCount(true);
       if (getTotalInvitesCount() < milestoneInvites) return;
       if (currentAccount.claimedMilestones.includes(milestoneInvites)) return;
 
@@ -2494,6 +2567,7 @@
     };
 
     window.claim45PlusReward = async function(bonusAmt) {
+      await refreshEligibleInviteCount(true);
       const invites = getTotalInvitesCount();
       if (invites < 45) return;
       const eligibleBlocks = Math.floor((invites - 45) / 5) + 1;
