@@ -163,8 +163,6 @@ def register():
 
 @app.post("/api/login")
 def login():
-    if not launched():
-        return jsonify({"error": "Login opens when the launch countdown reaches zero."}), 403
     data = request.get_json(silent=True) or {}
     phone = (data.get("phone") or "").strip()
     password = data.get("password") or ""
