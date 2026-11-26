@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Eastradge Capital — Launch Gate</title>
+<style>
+:root{--navy:#081126;--teal:#064c49;--mint:#b8f3e9;--gold:#e5c45d;--white:#f7fbff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(155deg,#073b3b 0%,#101b32 48%,#080f24 100%);color:var(--white);font-family:Arial,Helvetica,sans-serif;padding:24px 16px 40px}
+main{max-width:680px;margin:0 auto}.head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 22px;border-bottom:1px solid #ffffff30}.brand{font-size:clamp(23px,5vw,32px);font-weight:800}.launch{color:var(--mint);font-weight:700;margin-top:8px;line-height:1.5}.pill{background:#fff1b8;color:#89521b;padding:12px 18px;border-radius:30px;font-weight:800}
+.timer{margin:20px 0 24px;padding:22px 18px;border:2px solid #a58a42;border-radius:30px;background:#7e873c30;text-align:center}.timer h2{font-size:20px;color:#ffe68b;margin:0 0 22px}.digits{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.digit{background:#080d20;border-radius:22px;padding:17px 4px;color:white;font-size:clamp(25px,7vw,42px);font-weight:800}.digit small{display:block;font-size:15px;color:var(--mint);margin-top:8px}.digit:last-child{border:1px solid var(--gold);color:#ffc83d}.hint{line-height:1.5;color:#e5eaf1;margin:16px 0 0}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#071426;border-radius:22px;padding:7px;margin-bottom:18px}.tab{border:0;border-radius:18px;padding:15px 7px;background:transparent;color:var(--mint);font-weight:800;font-size:16px}.tab.active{background:white;color:#101827}
+.panel{background:#ffffff10;border:1px solid #ffffff35;border-radius:28px;padding:24px 22px;margin-bottom:18px}.field{margin-bottom:18px}.field label{display:block;color:var(--mint);font-weight:800;margin-bottom:10px}.field input{width:100%;padding:18px 20px;border-radius:23px;border:1px solid #ccd3dd;font-size:19px;font-weight:600;background:#fff;color:#172033;outline:none}.action{width:100%;border:0;border-radius:22px;padding:18px;background:linear-gradient(90deg,#ffad00,#e78a00);color:white;font-size:18px;font-weight:800}.action.teal{background:#08796e}.error{color:#ffd0d0;font-weight:700;margin:12px 0;min-height:20px}.success{color:#aaf3cf;font-weight:700}.hidden{display:none!important}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}.stat{background:#071426;border:1px solid #ffffff25;border-radius:18px;padding:15px 5px;text-align:center}.stat b{display:block;font-size:30px}.stat span{color:var(--mint);font-weight:800}.codebox{overflow-wrap:anywhere;background:#071426;border-radius:14px;padding:14px;margin:10px 0 16px}.muted{color:#d6e0e8;line-height:1.5}.secondary{background:#15233a;border:1px solid #ffffff30;color:white;border-radius:15px;padding:12px 15px;font-weight:700;margin:5px 5px 5px 0}
+@media(max-width:420px){body{padding:16px 12px}.panel{padding:20px 16px}.digits{gap:7px}.digit{border-radius:17px;padding:14px 2px}.digit small{font-size:12px}.stats{gap:6px}.stat b{font-size:24px}}
+</style>
+</head>
+<body><main>
+<header class="head"><div><div class="brand">Eastradge Capital</div><div class="launch">Launch: 30 Nov, 2026 • 07:00 AM EAT</div></div><div class="pill" id="statusPill">PRE-LAUNCH</div></header>
+<section class="timer" id="timer"><h2>OFFICIAL LAUNCH COUNTDOWN (UTC+3)</h2><div class="digits">
+<div class="digit"><span id="days">00</span><small>DAYS</small></div><div class="digit"><span id="hours">00</span><small>HOURS</small></div><div class="digit"><span id="minutes">00</span><small>MINUTES</small></div><div class="digit"><span id="seconds">00</span><small>SECONDS</small></div></div>
+<p class="hint">Standard sign-in and platform access unlock permanently when the timer reaches 00:00:00:00.</p></section>
+<div class="tabs"><button class="tab active" id="reserveTab">Reserve Invite Link</button><button class="tab" id="loginTab">My Link &amp; Team</button></div>
+<section class="panel" id="reservePanel">
+<div class="field"><label>Unique Full Name</label><input id="fullName" placeholder="Enter your full name" autocomplete="name"></div>
+<div class="field"><label>Phone Number (10 digits starting with 07)</label><input id="regPhone" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10"></div>
+<div class="field"><label>Password (minimum 6 characters)</label><input id="regPassword" type="password" placeholder="Create password"></div>
+<div class="field"><label>Invitation Code</label><input id="inviteCode" placeholder="ENTER INVITATION CODE" autocapitalize="characters"></div>
+<button class="action" id="registerBtn">Register &amp; Generate Invitation Link</button><div class="error" id="regError"></div>
+</section>
+<section class="panel hidden" id="loginPanel">
+<div id="loginFields"><div class="field"><label>Registered Phone (07...)</label><input id="loginPhone" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10"></div><div class="field"><label>Password</label><input id="loginPassword" type="password" placeholder="Enter password"></div><button class="action teal" id="loginBtn">View My Link &amp; Team</button></div>
+<div class="error" id="loginError"></div>
+<div id="accountBox" class="hidden"><h2 class="success">Your invitation dashboard</h2><div class="muted">Your team totals are shown by level. Other members' names and phone numbers are private.</div>
+<div class="stats"><div class="stat"><b id="lv1">0</b><span>LV1 · 15%</span></div><div class="stat"><b id="lv2">0</b><span>LV2 · 5%</span></div><div class="stat"><b id="lv3">0</b><span>LV3 · 1%</span></div></div>
+<div class="muted">Your invitation code</div><div class="codebox" id="myCode"></div><button class="secondary" id="copyCode">Copy code</button>
+<div class="muted">Your invitation link</div><div class="codebox" id="myLink"></div><button class="secondary" id="copyLink">Copy link</button>
+<p class="muted" id="inviteTotal"></p><button class="action teal" id="openPlatform">Open Eastradge Platform</button><button class="secondary" id="logoutBtn">Log out</button></div>
+</section></main>
+<script>
+const launchAt = Date.UTC(2026,10,30,4,0,0);
+const $ = id => document.getElementById(id);
+let account = null;
+function setTab(which){const reserve=which==='reserve';$('reservePanel').classList.toggle('hidden',!reserve);$('loginPanel').classList.toggle('hidden',reserve);$('reserveTab').classList.toggle('active',reserve);$('loginTab').classList.toggle('active',!reserve)}
+$('reserveTab').onclick=()=>setTab('reserve');$('loginTab').onclick=()=>setTab('login');
+function updateTimer(){const left=launchAt-Date.now();if(left<=0){$('timer').classList.add('hidden');$('statusPill').textContent='LAUNCHED';return}const d=Math.floor(left/86400000),h=Math.floor(left%86400000/3600000),m=Math.floor(left%3600000/60000),s=Math.floor(left%60000/1000);$('days').textContent=String(d).padStart(2,'0');$('hours').textContent=String(h).padStart(2,'0');$('minutes').textContent=String(m).padStart(2,'0');$('seconds').textContent=String(s).padStart(2,'0')}
+setInterval(updateTimer,1000);updateTimer();
+const params=new URLSearchParams(location.search);if(params.get('ref'))$('inviteCode').value=params.get('ref').toUpperCase();
+async function api(path,data){const r=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await r.json();if(!r.ok)throw new Error(j.error||'Request failed');return j}
+function showAccount(a){account=a;$('loginFields').classList.add('hidden');$('accountBox').classList.remove('hidden');$('loginError').textContent='';$('lv1').textContent=a.counts.LV1;$('lv2').textContent=a.counts.LV2;$('lv3').textContent=a.counts.LV3;$('myCode').textContent=a.inviteCode;$('myLink').textContent=a.inviteLink;$('inviteTotal').textContent='Total invites across all levels: '+a.counts.total;setTab('login')}
+$('registerBtn').onclick=async()=>{ $('regError').textContent='';if(!$('inviteCode').value.trim()){$('regError').textContent='Invitation code is required.';return}try{const a=await api('register',{fullName:$('fullName').value,phone:$('regPhone').value,password:$('regPassword').value,inviteCode:$('inviteCode').value.trim()});showAccount(a)}catch(e){$('regError').textContent=e.message}};
+$('loginBtn').onclick=async()=>{$('loginError').textContent='';try{showAccount(await api('login',{phone:$('loginPhone').value,password:$('loginPassword').value}))}catch(e){$('loginError').textContent=e.message}};
+$('copyCode').onclick=()=>navigator.clipboard.writeText(account.inviteCode);$('copyLink').onclick=()=>navigator.clipboard.writeText(account.inviteLink);
+$('openPlatform').onclick=()=>location.href='/platform';$('logoutBtn').onclick=async()=>{await api('logout',{});account=null;$('accountBox').classList.add('hidden');$('loginFields').classList.remove('hidden');$('loginPassword').value='';};
+(async()=>{try{const r=await fetch('/api/status');const s=await r.json();if(s.launched){$('timer').classList.add('hidden');$('statusPill').textContent='LAUNCHED';} }catch(e){} })();
+</script></body></html>

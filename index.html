@@ -122,10 +122,65 @@
       animation: pulseGlow 1.8s infinite;
     }
   </style>
+<style>
+
+/* EASTRADGE_LAUNCH_GATE_V1 */
+#eastradgeLaunchGate{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(ellipse at top,#174b50 0%,#0b2634 48%,#071521 100%);color:#fff;font-family:Arial,Helvetica,sans-serif;overflow:auto}
+#eastradgeLaunchGate *{box-sizing:border-box}
+#eastradgeLaunchGate .elg-card{width:min(100%,520px);padding:30px 22px;border:1px solid rgba(245,177,65,.75);border-radius:24px;background:linear-gradient(160deg,rgba(15,48,58,.98),rgba(8,25,39,.98));box-shadow:0 22px 70px rgba(0,0,0,.42);text-align:center}
+#eastradgeLaunchGate .elg-mark{width:62px;height:62px;margin:0 auto 16px;border-radius:18px;display:grid;place-items:center;background:rgba(245,177,65,.15);border:1px solid rgba(245,177,65,.5);color:#f5b141;font-size:27px;font-weight:900}
+#eastradgeLaunchGate .elg-kicker{margin:0 0 8px;color:#f5b141;font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}
+#eastradgeLaunchGate h1{margin:0;color:#fff;font-size:clamp(27px,7vw,38px);line-height:1.12;font-weight:900}
+#eastradgeLaunchGate .elg-sub{margin:13px auto 22px;max-width:390px;color:#c8d8dc;font-size:14px;line-height:1.6}
+#eastradgeLaunchGate .elg-date{display:inline-block;margin-bottom:18px;padding:9px 14px;border:1px solid rgba(245,177,65,.4);border-radius:999px;background:rgba(245,177,65,.1);color:#ffcf78;font-size:12px;font-weight:800}
+#eastradgeLaunchGate .elg-count{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 auto 20px}
+#eastradgeLaunchGate .elg-unit{padding:13px 5px 11px;border:1px solid rgba(245,177,65,.65);border-radius:13px;background:rgba(2,15,25,.58)}
+#eastradgeLaunchGate .elg-num{display:block;color:#fff;font-size:clamp(25px,7vw,35px);font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1}
+#eastradgeLaunchGate .elg-label{display:block;margin-top:7px;color:#f5b141;font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+#eastradgeLaunchGate .elg-note{margin:0;color:#9fb6bd;font-size:11px;line-height:1.5}
+@media(max-width:360px){#eastradgeLaunchGate{padding:12px}#eastradgeLaunchGate .elg-card{padding:24px 13px}#eastradgeLaunchGate .elg-count{gap:5px}#eastradgeLaunchGate .elg-unit{padding:11px 2px}}
+
+</style>
 </head>
 <body>
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-[120] w-[92%] max-w-[400px] flex flex-col gap-2 pointer-events-none"></div>
+
+
+    <div id="launchGate" style="display:flex;position:fixed;inset:0;z-index:110;align-items:center;justify-content:center;padding:16px;background:#f4f7f6;color:#1f2937;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      <div style="width:100%;max-width:480px;background:#fff;border:1px solid #dce5e0;border-radius:14px;padding:16px;text-align:center;">
+        <p style="margin:0 0 14px;color:#0f5132;font-size:14px;font-weight:800;">EASTRADGE CAPITAL</p>
+        <h1 style="margin:0;font-size:23px;line-height:1.3;font-weight:800;">Eastradge platform launching</h1>
+        <p style="margin:8px 0 18px;color:#53645b;font-size:14px;font-weight:600;">30 November 2026</p>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:18px 0;">
+          <div style="padding:12px 4px;border:1px solid #dce5e0;border-radius:10px;background:#f4f7f6;"><strong id="launchDays" style="display:block;color:#0f5132;font-size:26px;">00</strong><span style="font-size:11px;font-weight:700;">Days</span></div>
+          <div style="padding:12px 4px;border:1px solid #dce5e0;border-radius:10px;background:#f4f7f6;"><strong id="launchHours" style="display:block;color:#0f5132;font-size:26px;">00</strong><span style="font-size:11px;font-weight:700;">Hours</span></div>
+          <div style="padding:12px 4px;border:1px solid #dce5e0;border-radius:10px;background:#f4f7f6;"><strong id="launchMinutes" style="display:block;color:#0f5132;font-size:26px;">00</strong><span style="font-size:11px;font-weight:700;">Minutes</span></div>
+          <div style="padding:12px 4px;border:1px solid #dce5e0;border-radius:10px;background:#f4f7f6;"><strong id="launchSeconds" style="display:block;color:#0f5132;font-size:26px;">00</strong><span style="font-size:11px;font-weight:700;">Seconds</span></div>
+        </div>
+        <p style="margin:14px 0 0;color:#53645b;font-size:13px;">Registration and sign in will open when the countdown reaches zero.</p>
+        <span style="display:inline-block;margin-top:14px;padding:8px 14px;border-radius:8px;background:#0f5132;color:white;font-size:12px;font-weight:800;">Launching soon</span>
+      </div>
+    </div>
+
+
+<!-- EASTRADGE_LAUNCH_GATE_V1 -->
+<div id="eastradgeLaunchGate" role="status" aria-live="polite">
+  <section class="elg-card">
+    <div class="elg-mark" aria-hidden="true">E</div>
+    <p class="elg-kicker">Eastradge Capital</p>
+    <h1>We are launching soon</h1>
+    <p class="elg-sub">Our platform is preparing to welcome you. Registration and sign in will become available when the countdown reaches zero.</p>
+    <div class="elg-date">30 November 2026 &nbsp;•&nbsp; 7:00 AM Uganda Time</div>
+    <div class="elg-count" aria-label="Time remaining">
+      <div class="elg-unit"><span class="elg-num" id="elgDays">000</span><span class="elg-label">Days</span></div>
+      <div class="elg-unit"><span class="elg-num" id="elgHours">00</span><span class="elg-label">Hours</span></div>
+      <div class="elg-unit"><span class="elg-num" id="elgMinutes">00</span><span class="elg-label">Minutes</span></div>
+      <div class="elg-unit"><span class="elg-num" id="elgSeconds">00</span><span class="elg-label">Seconds</span></div>
+    </div>
+    <p class="elg-note">The registration and login page will unlock automatically at launch.</p>
+  </section>
+</div>
 
   <div id="app" class="app-shell">
     <!-- ==================== AUTHENTICATION SCREEN ==================== -->
@@ -1425,7 +1480,43 @@
       return new Date().toISOString().split('T')[0];
     }
 
-    function bootstrapInstant() {
+
+    const EASTRADGE_LAUNCH_AT = new Date('2026-11-30T00:00:00+03:00').getTime();
+
+    function updateLaunchGate() {
+      const gate = document.getElementById('launchGate');
+      const auth = document.getElementById('authScreen');
+      if (!gate || !auth) return;
+
+      if (currentAccount) {
+        gate.style.display = 'none';
+        return;
+      }
+
+      const remaining = EASTRADGE_LAUNCH_AT - Date.now();
+
+      if (remaining <= 0) {
+        gate.style.display = 'none';
+        auth.classList.remove('hidden');
+        return;
+      }
+
+      gate.style.display = 'flex';
+      auth.classList.add('hidden');
+
+      const totalSeconds = Math.floor(remaining / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      document.getElementById('launchDays').textContent = String(days).padStart(2, '0');
+      document.getElementById('launchHours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('launchMinutes').textContent = String(minutes).padStart(2, '0');
+      document.getElementById('launchSeconds').textContent = String(seconds).padStart(2, '0');
+    }
+
+    async function bootstrapInstant() {
       applyThemeStyles();
 
       try {
@@ -1436,14 +1527,32 @@
         }
       } catch (e) {}
 
-      const savedPhone = lsRead(LS_KEYS.SESSION, null);
-      if (savedPhone) {
-        const usersMap = lsRead(LS_KEYS.USERS, {});
-        if (usersMap[savedPhone]) {
-          currentAccount = normalizeAccountSchema(usersMap[savedPhone]);
-          enterMainApp();
+      updateLaunchGate();
+      window.setInterval(updateLaunchGate, 1000);
+
+      try {
+        const response = await fetch('/api/platform-account', {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+
+        if (!response.ok) {
+          window.location.replace('/');
+          return;
         }
+
+        const result = await response.json();
+        if (!result.account) throw new Error('Server account missing');
+
+        currentAccount = normalizeAccountSchema(result.account);
+        enterMainApp();
+      } catch (error) {
+        console.error('Could not load server account:', error);
+        window.location.replace('/');
+        return;
       }
+
       initBackgroundFirebase();
     }
 
@@ -1754,6 +1863,25 @@
       document.getElementById('mainApp').classList.add('hidden');
       document.getElementById('authScreen').classList.remove('hidden');
       switchAuthMode('login');
+    };
+
+    const eastradgeOriginalLogout = window.handleLogout;
+    window.handleLogout = async function() {
+      try {
+        await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {'Content-Type': 'application/json'},
+          body: '{}'
+        });
+      } catch (error) {
+        console.error('Server logout failed:', error);
+      }
+
+      if (typeof eastradgeOriginalLogout === 'function') {
+        eastradgeOriginalLogout();
+      }
+      window.location.replace('/');
     };
 
     function enterMainApp() {
@@ -3606,6 +3734,37 @@ Rules:
         setHeroSlide((currentHeroIndex + 1) % 2);
       }
     }, 4500);
+
+
+/* EASTRADGE_LAUNCH_GATE_V1 */
+(function installEastradgeLaunchGate(){
+  var gate = document.getElementById('eastradgeLaunchGate');
+  if (!gate) return;
+  var launchAt = Date.parse('2026-11-30T04:00:00Z'); // 7:00 AM Uganda time (UTC+3)
+  var timer = null;
+  function unlock(){
+    if (timer) clearInterval(timer);
+    var node = document.getElementById('eastradgeLaunchGate');
+    if (node) node.remove();
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
+  function tick(){
+    var remaining = launchAt - Date.now();
+    if (remaining <= 0){ unlock(); return; }
+    var totalSeconds = Math.floor(remaining / 1000);
+    var days = Math.floor(totalSeconds / 86400);
+    var hours = Math.floor((totalSeconds % 86400) / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = totalSeconds % 60;
+    var values = {elgDays:String(days).padStart(3,'0'),elgHours:String(hours).padStart(2,'0'),elgMinutes:String(minutes).padStart(2,'0'),elgSeconds:String(seconds).padStart(2,'0')};
+    Object.keys(values).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=values[id];});
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  }
+  tick();
+  if (document.getElementById('eastradgeLaunchGate')) timer = setInterval(tick, 250);
+})();
 
     bootstrapInstant();
   </script>
